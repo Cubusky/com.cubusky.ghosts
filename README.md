@@ -1,5 +1,5 @@
 # About Ghosts
-Ghosts is a customizable object recording solution. It allows the recording and replaying of object movement and animation and can be used by players to race online opponents, or by developers to analyze player behavior. 
+Ghosts is a customizable object recording solution that allows the recording and replaying of object movement and animation. It can be used by players to race online opponents, or by developers to analyze player behavior. 
 
 Ghosts focuses on small and efficient file sizes in order to keep storage costs low. It stores incremental changes rather so that if the recordee doesn't move, nothing gets recorded. 
 
