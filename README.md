@@ -1,7 +1,7 @@
-# About _Templates Package_
-_Templates Package_ is a GitHub Template for creating packages. The [Wiki](https://cubusky.github.io/com.cubusky.templates.package) provides valuable information around package rules, guidelines and maintenance. It includes references to style guides, documentation and general knowledge about how to maintain a package.
+# About Ghosts
+Ghosts allows recording and replaying object movement and animation. It can be used by players to race online opponents, or by developers to analyze player behavior. Ghosts focuses on small and efficient file sizes in order to keep storage costs low. It stores incremental changes rather so that if your player doesn't move, nothing gets recorded. ~Ghosts aims to be lightweight in its replay feature so that you should have no problem analyzing 1000's of Ghosts at once.~ (CURRENTLY IN DEVELOPMENT, NO PROMISES!)
 
-## Installing _Templates Package_
+## Installing Ghosts
 To install this package, follow the instructions on the [Package Manager documentation](https://docs.unity3d.com/Manual/upm-ui-giturl.html) after adding the following lines in your `manifest.json`
 ```json
 {
@@ -12,9 +12,9 @@ To install this package, follow the instructions on the [Package Manager documen
 ```
 
 ## Requirements
-This version of _Templates Package_ is compatible with the following versions of the Unity Editor:
+This version of Ghosts is compatible with the following versions of the Unity Editor:
 - 2022.3 and later (recommended)
 
 ## Known Limitations
-_Templates Package_ `0.1.0-exp` includes the following known limitations:
+Ghosts `0.1.0-exp` includes the following known limitations:
 - No currently known limitations.
