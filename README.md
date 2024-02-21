@@ -1,5 +1,5 @@
 # About Ghosts
-Ghosts allows recording and replaying object movement and animation. It can be used by players to race online opponents, or by developers to analyze player behavior. Ghosts focuses on small and efficient file sizes in order to keep storage costs low. It stores incremental changes rather so that if your player doesn't move, nothing gets recorded. ~Ghosts aims to be lightweight in its replay feature so that you should have no problem analyzing 1000's of Ghosts at once.~ (CURRENTLY IN DEVELOPMENT, NO PROMISES!)
+Ghosts allows recording and replaying object movement and animation. It can be used by players to race online opponents, or by developers to analyze player behavior. Ghosts focuses on small and efficient file sizes in order to keep storage costs low. It stores incremental changes rather so that if the recordee doesn't move, nothing gets recorded. ~Ghosts aims to be lightweight in its replay feature so that you should have no problem analyzing 1000's of Ghosts at once.~ (CURRENTLY IN DEVELOPMENT, NO PROMISES!)
 
 ## Installing Ghosts
 To install this package, follow the instructions on the [Package Manager documentation](https://docs.unity3d.com/Manual/upm-ui-giturl.html) after adding the following lines in your `manifest.json`
