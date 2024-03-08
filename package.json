@@ -1,25 +1,24 @@
 {
-  "name": "com.[company-name].[package-name]",
-  "version": "1.2.3",
-  "displayName": "Package Example",
-  "description": "This is an example package",
-  "unity": "2019.1",
-  "unityRelease": "0b5",
-  "documentationUrl": "https://example.com/",
-  "changelogUrl": "https://example.com/changelog.html",
-  "licensesUrl": "https://example.com/licensing.html",
+  "name": "com.cubusky.ghosts",
+  "version": "0.1.0-exp",
+  "displayName": "Ghosts",
+  "unity": "2022.3",
+  "documentationUrl": "https://cubusky.github.io/com.cubusky.ghosts/",
+  "changelogUrl": "https://cubusky.github.io/com.cubusky.ghosts/changelog/CHANGELOG.html",
+  "licensesUrl": "https://cubusky.github.io/com.cubusky.ghosts/license/LICENSE.html",
+  "hideInEditor": false,
+  "type": "library",
   "dependencies": {
-    "com.[company-name].some-package": "1.0.0",
-    "com.[company-name].other-package": "2.0.0"
- },
- "keywords": [
-    "keyword1",
-    "keyword2",
-    "keyword3"
+    "com.cubusky.core": "https://github.com/Cubusky/com.cubusky.core.git",
+    "com.unity.serialization": "3.1.1"
+  },
+  "keywords": [
+    "Cubusky",
+    "Ghosts"
   ],
   "author": {
-    "name": "Unity",
-    "email": "unity@example.com",
-    "url": "https://www.unity3d.com"
+    "name": "Cubusky",
+    "email": "cubuskycode@gmail.com",
+    "url": "https://github.com/Cubusky"
   }
 }
