@@ -18,16 +18,24 @@ namespace Cubusky.Ghosts
         public const string rotationKey = "rot";
         public const string localScaleKey = "scl";
         public const string speedKey = "spd";
+        public const string updateModeKey = "upm";
         public const string layersKey = "lyrs";
         public const string parametersKey = "prms";
 
         public static readonly LayerIndexComparer layerIndexComparer = new();
+        public static readonly LayerStateComparer layerStateComparer = new();
         public static readonly ParameterIdComparer parameterIdComparer = new();
 
         public class LayerIndexComparer : IEqualityComparer<Ghost.Layer>
         {
             public bool Equals(Ghost.Layer layer, Ghost.Layer other) => layer.layerIndex.Equals(other.layerIndex);
             public int GetHashCode(Ghost.Layer layer) => HashCode.Combine(layer.layerIndex);
+        }
+
+        public class LayerStateComparer : IEqualityComparer<Ghost.Layer>
+        {
+            public bool Equals(Ghost.Layer layer, Ghost.Layer other) => layer.layerIndex.Equals(other.layerIndex) && layer.shortNameHash.Equals(other.shortNameHash);
+            public int GetHashCode(Ghost.Layer layer) => HashCode.Combine(layer.layerIndex, layer.shortNameHash);
         }
 
         public class ParameterIdComparer : IEqualityComparer<Ghost.Parameter>
@@ -43,7 +51,8 @@ namespace Cubusky.Ghosts
             || ghost.rotation != value.rotation
             || ghost.localScale != value.localScale
             || ghost.speed != value.speed
-            || !ghost.layers.SequenceEqual(value.layers, layerIndexComparer)
+            || ghost.updateMode != value.updateMode
+            || !ghost.layers.SequenceEqual(value.layers, layerStateComparer)
             || !ghost.parameters.SequenceEqual(value.parameters);
 
         void IJsonAdapter<Ghost>.Serialize(in JsonSerializationContext<Ghost> context, Ghost value)
@@ -55,8 +64,6 @@ namespace Cubusky.Ghosts
             }
             if (ghost.position != value.position)
             {
-                //context.SerializeValue(positionKey, value.position);
-
                 using var positionScope = context.Writer.WriteObjectScope(positionKey);
                 for (int i = 0; i < vector3Keys.Length; i++)
                 {
@@ -68,8 +75,6 @@ namespace Cubusky.Ghosts
             }
             if (ghost.rotation != value.rotation)
             {
-                //context.SerializeValue(rotationKey, value.rotation);
-
                 using var rotationScope = context.Writer.WriteObjectScope(rotationKey);
                 for (int i = 0; i < quaternionKeys.Length; i++)
                 {
@@ -81,8 +86,6 @@ namespace Cubusky.Ghosts
             }
             if (ghost.localScale != value.localScale)
             {
-                //context.SerializeValue(localScaleKey, value.localScale);
-
                 using var localScaleScope = context.Writer.WriteObjectScope(localScaleKey);
                 for (int i = 0; i < vector3Keys.Length; i++)
                 {
@@ -97,10 +100,10 @@ namespace Cubusky.Ghosts
                 context.SerializeValue(speedKey, value.speed);
             }
 
-            if (!ghost.layers.SequenceEqual(value.layers, layerIndexComparer))
+            if (!ghost.layers.SequenceEqual(value.layers, layerStateComparer))
             {
                 using var layersScope = context.Writer.WriteArrayScope(layersKey);
-                foreach (var layer in value.layers.Except(ghost.layers, layerIndexComparer))
+                foreach (var layer in value.layers.Except(ghost.layers, layerStateComparer))
                 {
                     context.SerializeValue(layer);
                 }
@@ -122,7 +125,6 @@ namespace Cubusky.Ghosts
         {
             ghost.timeScale = context.SerializedValue.TryGetValue(timeScaleKey, out var view) ? context.DeserializeValue<float>(view) : ghost.timeScale;
 
-            //ghost.position = context.SerializedValue.TryGetValue(positionKey, out view) ? context.DeserializeValue<Vector3>(view) : ghost.position;
             if (context.SerializedValue.TryGetValue(positionKey, out view))
             {
                 for (int i = 0; i < vector3Keys.Length; i++)
@@ -134,7 +136,6 @@ namespace Cubusky.Ghosts
                 }
             }
 
-            //ghost.rotation = context.SerializedValue.TryGetValue(rotationKey, out view) ? context.DeserializeValue<Quaternion>(view) : ghost.rotation;
             if (context.SerializedValue.TryGetValue(rotationKey, out view))
             {
                 for (int i = 0; (i < quaternionKeys.Length); i++)
@@ -146,7 +147,6 @@ namespace Cubusky.Ghosts
                 }
             }
 
-            //ghost.localScale = context.SerializedValue.TryGetValue(localScaleKey, out view) ? context.DeserializeValue<Vector3>(view) : ghost.localScale;
             if (context.SerializedValue.TryGetValue(localScaleKey, out view))
             {
                 for (int i = 0; i < vector3Keys.Length; i++)
