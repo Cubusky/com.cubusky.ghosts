@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Unity.Serialization.Json;
@@ -5,14 +6,17 @@ using UnityEngine;
 
 namespace Cubusky.Ghosts
 {
-    public class GhostRecorder : MonoBehaviour
+    public class GhostRecorder : MonoBehaviour, ISerializationCallbackReceiver
     {
+        [SerializeField, TimeSpan] private long _minimumRecordingTime = TimeSpan.TicksPerSecond * 10;
         [field: SerializeField] public Timer timer { get; set; } = new Timer()
         {
-            SynchronizingObject = new UpdateSynchronizer()
+            SynchronizingObject = new ManualSynchronizer()
         };
 
         [SerializeField] private int _digits = 6;
+        [field: SerializeField] public bool saveInEditor { get; set; }
+        [field: SerializeReference, ReferenceDropdown(nullable = true)] public ICompressor compressor { get; set; }
         [field: SerializeReference, ReferenceDropdown] public ISaver saver { get; set; }
 
         public int digits 
@@ -21,7 +25,11 @@ namespace Cubusky.Ghosts
             set => jsonSerializationParameters.UserDefinedAdapters[1] = new FloatRounder(_digits = value);
         }
 
-        private void OnValidate() => digits = _digits;
+        public TimeSpan minimumRecordingTime { get; set; }
+        public float recordingTime { get; private set; }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize() => _minimumRecordingTime = minimumRecordingTime.Ticks;
+        void ISerializationCallbackReceiver.OnAfterDeserialize() => minimumRecordingTime = new(_minimumRecordingTime);
 
         private Ghost ghost;
         private Animator animator;
@@ -29,8 +37,8 @@ namespace Cubusky.Ghosts
 
         private JsonSerializationParameters jsonSerializationParameters = new()
         {
-            Minified = false,
-            Simplified = false,
+            Minified = true,
+            Simplified = true,
             DisableValidation = true,
             UserDefinedAdapters = new()
             {
@@ -38,6 +46,8 @@ namespace Cubusky.Ghosts
                 new FloatRounder(default),
             }
         };
+
+        private void OnValidate() => digits = _digits;
 
         private void Start()
         {
@@ -49,28 +59,46 @@ namespace Cubusky.Ghosts
             timer.Start();
         }
 
+        private void Update()
+        {
+            (timer.SynchronizingObject as ManualSynchronizer).ProcessQueue();
+            recordingTime += Time.deltaTime;
+        }
+
         private void Serialize(double time)
         {
-            ghost = animator ? new(animator) : new(transform);
+            var timeAsFloat = (float)(time - time % timer.Interval);
+            ghost = animator ? new(animator, timeAsFloat) : new(transform);
 
             if (GhostAdapter.WillSerialize(ghost, jsonSerializationParameters))
             {
-                var json = JsonSerialization.ToJson(new KeyValuePair<double, Ghost>(time, ghost), jsonSerializationParameters);
+                var json = JsonSerialization.ToJson(new KeyValuePair<float, Ghost>(timeAsFloat, ghost), jsonSerializationParameters);
                 ghostJsonBuilder.Append(json + ",");
             }
         }
 
-        private void OnDestroy()
+        private async void OnDestroy()
         {
             timer.Elapsed -= Serialize;
             timer.Stop();
             timer.Dispose();
 
-            if (ghostJsonBuilder.Length > 0)
+#if UNITY_EDITOR
+            if (saveInEditor)
+#endif
             {
-                ghostJsonBuilder.Remove(ghostJsonBuilder.Length - 1, 1);
-                ghostJsonBuilder.Append("]");
-                saver.SaveAsync(ghostJsonBuilder.ToString());
+                if (recordingTime > minimumRecordingTime.TotalSeconds)
+                {
+                    var json = JsonSerialization.ToJson(new KeyValuePair<float, Ghost>(recordingTime - recordingTime % (float)timer.Interval, ghost), jsonSerializationParameters);
+                    ghostJsonBuilder.Append(json);
+                    ghostJsonBuilder.Append("]");
+
+                    var bytes = saver.encoding.GetBytes(ghostJsonBuilder.ToString());
+                    bytes = compressor != null
+                        ? await compressor.CompressAsync(bytes)
+                        : bytes;
+                    await saver.SaveAsync(bytes);
+                }
             }
         }
     }

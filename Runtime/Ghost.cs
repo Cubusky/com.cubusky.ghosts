@@ -11,6 +11,7 @@ namespace Cubusky.Ghosts
         public Quaternion rotation;
         public Vector3 localScale;
         public float speed;
+        public AnimatorUpdateMode updateMode;
         public Layer[] layers;
         public Parameter[] parameters;
 
@@ -21,6 +22,7 @@ namespace Cubusky.Ghosts
             this.rotation = Quaternion.identity;
             this.localScale = Vector3.one;
             this.speed = 1f;
+            this.updateMode = AnimatorUpdateMode.Normal;
             this.layers = Array.Empty<Layer>();
             this.parameters = Array.Empty<Parameter>();
         }
@@ -31,14 +33,15 @@ namespace Cubusky.Ghosts
             localScale = transform.localScale;
         }
 
-        public Ghost(Animator animator) : this(animator.transform)
+        public Ghost(Animator animator, float time = default) : this(animator.transform)
         {
             speed = animator.speed;
+            updateMode = animator.updateMode;
 
             layers = new Layer[animator.layerCount];
             for (int layerIndex = 0; layerIndex < layers.Length; layerIndex++)
             {
-                layers[layerIndex] = new(layerIndex, animator);
+                layers[layerIndex] = new(layerIndex, animator, time);
             }
 
             // Store all parameters, except those that are controlled by a curve.
@@ -65,6 +68,7 @@ namespace Cubusky.Ghosts
             && rotation.Equals(other.rotation)
             && localScale.Equals(other.localScale)
             && speed.Equals(other.speed)
+            && updateMode.Equals(other.updateMode)
             && layers.Equals(other.layers)
             && parameters.Equals(other.parameters);
 
@@ -75,6 +79,7 @@ namespace Cubusky.Ghosts
             rotation = rotation,
             localScale = localScale,
             speed = speed,
+            updateMode = updateMode,
             layers = (Layer[])layers.Clone(),
             parameters = (Parameter[])parameters.Clone(),
         };
@@ -84,6 +89,7 @@ namespace Cubusky.Ghosts
             && lhs.rotation == rhs.rotation
             && lhs.localScale == rhs.localScale
             && lhs.speed == rhs.speed
+            && lhs.updateMode == rhs.updateMode
             && lhs.layers == rhs.layers
             && lhs.parameters == rhs.parameters;
 
@@ -104,36 +110,43 @@ namespace Cubusky.Ghosts
 
         public static void Store(this Ghost ghost, Transform transform)
         {
+            ghost.Store();
+         
             transform.GetPositionAndRotation(out ghost.position, out ghost.rotation);
             ghost.localScale = transform.localScale;
-
-            ghost.Store();
         }
 
         public static void Restore(this Ghost ghost, Transform transform) 
         {
+            ghost.Restore();
+
             transform.SetPositionAndRotation(ghost.position, ghost.rotation);
             transform.localScale = ghost.localScale;
-
-            ghost.Restore();
         }
 
-        public static void Store(this Ghost ghost, Animator animator)
+        public static void Store(this Ghost ghost, Animator animator, float time = default)
         {
-            ghost.speed = animator.speed;
-            Array.ForEach(ghost.layers, layer => layer.Store(animator));
-            Array.ForEach(ghost.parameters, parameter => parameter.Store(animator));
-
             ghost.Store(animator.transform);
+
+            ghost.speed = animator.speed;
+            ghost.updateMode = animator.updateMode;
+            Array.ForEach(ghost.layers, layer => layer.Store(animator, time));
+            Array.ForEach(ghost.parameters, parameter => parameter.Store(animator));
         }
 
-        public static void Restore(this Ghost ghost, Animator animator) 
+        public static void Restore(this Ghost ghost, Animator animator, float time = default)
         {
+            ghost.Restore(animator.transform);
+
             animator.speed = ghost.speed;
-            Array.ForEach(ghost.layers, layer => layer.Restore(animator));
+            animator.updateMode = ghost.updateMode;
+            Array.ForEach(ghost.layers, layer => layer.Restore(animator, time));
             Array.ForEach(ghost.parameters, parameter => parameter.Restore(animator));
 
-            ghost.Restore(animator.transform);
+            if (animator.isActiveAndEnabled)
+            {
+                animator.Update(0f);
+            }
         }
     }
 }

@@ -20,5 +20,5 @@ This version of Ghosts is compatible with the following versions of the Unity Ed
 - 2022.3 and later (recommended)
 
 ## Known Limitations
-Ghosts `0.1.0-exp` includes the following known limitations:
+Ghosts `0.1.0-pre` includes the following known limitations:
 - No currently known limitations.
