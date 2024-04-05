@@ -35,7 +35,6 @@ namespace Cubusky.Ghosts
         {
             Minified = true,
             Simplified = true,
-            DisableValidation = true,
             UserDefinedAdapters = new() { new GhostAdapter() }
         };
 
@@ -46,6 +45,15 @@ namespace Cubusky.Ghosts
         public ReadOnlyCollection<TimedGhost> ReadTimedGhosts() => Array.AsReadOnly(timedGhosts);
         public ReadOnlyCollection<Transform> ReadTransforms() => Array.AsReadOnly(transforms);
         public ReadOnlyCollection<Animator> ReadAnimators() => Array.AsReadOnly(animators);
+
+        private CancellationTokenSource destroyCancellationTokenSource;
+        private CancellationToken destroyCancellationToken;
+
+        private void OnDestroy()
+        {
+            destroyCancellationTokenSource.Cancel();
+            destroyCancellationTokenSource.Dispose();
+        }
 
         private void OnValidate()
         {
@@ -213,6 +221,12 @@ namespace Cubusky.Ghosts
         void ISerializationCallbackReceiver.OnBeforeSerialize() { }
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
+            if (destroyCancellationTokenSource == null)
+            {
+                destroyCancellationTokenSource = new();
+                destroyCancellationToken = destroyCancellationTokenSource.Token;
+            }
+
 #if UNITY_EDITOR
             if (timedGhosts.Length == 0)
             {

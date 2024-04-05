@@ -29,7 +29,8 @@ namespace Cubusky.Ghosts
 
         public Ghost(Transform transform) : this(1f)
         {
-            transform.GetPositionAndRotation(out position, out rotation);
+            position = transform.position;
+            rotation = transform.rotation;
             localScale = transform.localScale;
         }
 
@@ -112,7 +113,8 @@ namespace Cubusky.Ghosts
         {
             ghost.Store();
          
-            transform.GetPositionAndRotation(out ghost.position, out ghost.rotation);
+            ghost.position = transform.position;
+            ghost.rotation = transform.rotation;
             ghost.localScale = transform.localScale;
         }
 

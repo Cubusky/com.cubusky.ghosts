@@ -39,7 +39,6 @@ namespace Cubusky.Ghosts
         {
             Minified = true,
             Simplified = true,
-            DisableValidation = true,
             UserDefinedAdapters = new()
             {
                 new GhostAdapter(),
