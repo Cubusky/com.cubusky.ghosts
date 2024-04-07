@@ -38,7 +38,6 @@ namespace Cubusky.Ghosts
         private JsonSerializationParameters jsonSerializationParameters = new()
         {
             Minified = true,
-            Simplified = true,
             UserDefinedAdapters = new()
             {
                 new GhostAdapter(),

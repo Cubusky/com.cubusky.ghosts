@@ -34,7 +34,6 @@ namespace Cubusky.Ghosts
         private JsonSerializationParameters jsonSerializationParameters = new()
         {
             Minified = true,
-            Simplified = true,
             UserDefinedAdapters = new() { new GhostAdapter() }
         };
 
@@ -236,7 +235,13 @@ namespace Cubusky.Ghosts
                 }
                 else
                 {
-                    UnityEditor.EditorApplication.delayCall += DestroyGhosts;
+                    UnityEditor.EditorApplication.delayCall += () =>
+                    {
+                        if (this)
+                        {
+                            DestroyGhosts();
+                        }
+                    };
                 }
             }
 #endif
