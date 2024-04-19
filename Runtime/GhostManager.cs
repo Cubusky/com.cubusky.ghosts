@@ -15,17 +15,23 @@ namespace Cubusky.Ghosts
         [field: SerializeReference, ReferenceDropdown] public IEnumerableLoader loader { get; set; }
         [field: SerializeField, Tooltip("Auto loads the ghosts " + nameof(ISerializationCallbackReceiver.OnAfterDeserialize) + ". This may be desirable if you're doing a lot of script reloading.")] public bool autoLoad { get; set; }
 
-        [Header("Control")]
-        [SerializeField] private float _time;
-        [field: SerializeField, Min(1)] public int updateBatchSize { get; set; } = 1024;
-        
-        public float time
-        {
-            get => _time;
-            set => _time = value;
-        }
+        [field: Header("Control")]
+        [field: Tooltip(
+@"The playback time of the ghost manager.
 
-        public bool hasAnimators => ghostPrefab != null ? ghostPrefab.TryGetComponent<Animator>(out _) : false;
+To follow a ghost:
+- Lock the Inspector window
+- Select a Ghost
+- Press Shift + F
+- Increase / Decrease time"
+        )]
+        [field: SerializeField] public float time { get; set; }
+        [field: SerializeField] public bool playback { get; set; }
+        [field: SerializeField] public float playbackScale { get; set; } = 1f;
+        [field: SerializeField, Tooltip("If a ghosts moves more than the warp distance in a given frame, they will be warped to their new location instead."), Min(0f)] public float warpDistance { get; set; } = float.PositiveInfinity;
+        [field: SerializeField, Min(1), Tooltip("The amount of ghosts that will be updated in unison per frame. Lowering this setting may increase editor responsiveness when profiling ghosts, but may take longer for all ghosts to update correctly.")] public int updateBatchSize { get; set; } = 1024;
+        
+        public bool hasAnimators => ghostPrefab != null && ghostPrefab.TryGetComponent<Animator>(out _);
 
         private float _lastTime;
         private int currentGhostIndex;
@@ -56,9 +62,19 @@ namespace Cubusky.Ghosts
 
         private void OnValidate()
         {
-            if (_lastTime != _time)
+            if (_lastTime != time)
             {
-                _lastTime = _time;
+                _lastTime = time;
+                UpdateGhosts();
+            }
+        }
+
+        private void Update()
+        {
+            if (playback)
+            {
+                time += Time.deltaTime * playbackScale;
+                _lastTime = time;
                 UpdateGhosts();
             }
         }
@@ -106,8 +122,7 @@ namespace Cubusky.Ghosts
 
             while (transform.childCount < targetLength)
             {
-                //Instantiate(ghostPrefab, transform);
-                Instantiate(ghostPrefab, transform).hideFlags = HideFlags.HideInHierarchy | HideFlags.NotEditable;
+                Instantiate(ghostPrefab, transform);
             }
 
             if (hasAnimators)
@@ -193,7 +208,7 @@ namespace Cubusky.Ghosts
 
                     for (int i = 0; i < timedGhosts.Length; i++)
                     {
-                        var ghost = timedGhosts[i][time];
+                        var ghost = timedGhosts[i][time, warpDistance];
                         if (ghost.HasValue)
                         {
                             this.transforms[i].gameObject.SetActive(true);
@@ -244,6 +259,15 @@ namespace Cubusky.Ghosts
                     };
                 }
             }
+
+            UnityEditor.EditorApplication.delayCall += () =>
+            {
+                UnityEditor.EditorApplication.update -= Update;
+                if (!Application.IsPlaying(this))
+                {
+                    UnityEditor.EditorApplication.update += Update;
+                }
+            };
 #endif
         }
     }
