@@ -241,9 +241,9 @@ To follow a ghost:
                 }
             }
 
-            UnityEditor.EditorApplication.update -= Update;
             UnityEditor.EditorApplication.delayCall += () =>
             {
+                UnityEditor.EditorApplication.update -= Update;
                 if (!Application.IsPlaying(this))
                 {
                     UnityEditor.EditorApplication.update += Update;
