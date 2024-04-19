@@ -17,17 +17,30 @@ namespace Cubusky.Ghosts
             this.ghosts = ghosts;
         }
 
-        public readonly Ghost? this[float time]
+        public readonly Ghost? this[float time, float warpDistance = float.PositiveInfinity]
         {
             get
             {
                 var binaryIndex = Array.BinarySearch(times, time);
+                if (binaryIndex >= 0)
+                {
+                    return ghosts[binaryIndex];
+                }
+                else if (~binaryIndex == 0 || ~binaryIndex >= ghosts.Length)
+                {
+                    return null;
+                }
+                else
+                {
+                    var ghostA = ghosts[~binaryIndex - 1];
+                    var ghostB = ghosts[~binaryIndex];
+                    var t = Mathf.InverseLerp(times[~binaryIndex - 1], times[~binaryIndex], time);
 
-                return binaryIndex >= 0
-                    ? ghosts[binaryIndex]
-                    : ~binaryIndex != 0 && ~binaryIndex < ghosts.Length
-                        ? Ghost.Lerp(ghosts[~binaryIndex - 1], ghosts[~binaryIndex], Mathf.InverseLerp(times[~binaryIndex - 1], times[~binaryIndex], time))
-                        : null;
+                    var deltaPosition = ghostB.position - ghostA.position;
+                    return deltaPosition.sqrMagnitude >= warpDistance * warpDistance 
+                        ? t < 0.5f ? ghostA : ghostB 
+                        : Ghost.Lerp(ghostA, ghostB, t);
+                }
             }
         }
     }
